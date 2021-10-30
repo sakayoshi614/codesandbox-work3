@@ -1,36 +1,73 @@
 import React, { useEffect, useState } from "react";
-import { ColorfulMessage } from "./components/ColorfulMessage";
+import { InputTodo } from "./components/InputTodo";
+import { IncompleteTodos } from "./components/IncompleteTodos";
+import { CompleteTodos } from "./components/CompleteTodos";
+import "./styles.css";
 
 export const App = () => {
-  const [num, setNum] = useState(0);
-  const [showFlag, setShowFlag] = useState(false);
+  const [todoText, setTodoText] = useState();
+  const [incompleteTodos, setIncompleteTodos] = useState([]);
+  const [completeTodos, setCompleteTodos] = useState([]);
 
-  const onClicCountUp = () => {
-    setNum(num + 1);
+  const onChangeTodoText = (event) => setTodoText(event.target.value);
+
+  // 追加ボタン
+  const onClickAdd = () => {
+    if (todoText === "") return;
+    const newTodos = [...incompleteTodos, todoText];
+    setIncompleteTodos(newTodos);
+    setTodoText("");
   };
 
-  const onClicSwitchShowFlag = () => {
-    setShowFlag(!showFlag);
+  // 完了ボタン
+  const onClickComplete = (index) => {
+    const newCompleteTodos = [...completeTodos, incompleteTodos[index]];
+
+    const newIncompleteTodos = [...incompleteTodos];
+    newIncompleteTodos.splice(index, 1);
+
+    setIncompleteTodos(newIncompleteTodos);
+    setCompleteTodos(newCompleteTodos);
   };
 
-  useEffect(() => {
-    if (num > 0 && num % 3 === 0) {
-      showFlag || setShowFlag(true);
-    } else {
-      showFlag && setShowFlag(false);
-    }
-  }, [num]);
+  // 削除ボタン
+  const onClickDelete = (index) => {
+    const newTodos = [...incompleteTodos];
+    newTodos.splice(index, 1);
+    setIncompleteTodos(newTodos);
+  };
+
+  // 戻すボタン
+  const onClickUndo = (index) => {
+    const newIncompleteTodos = [...incompleteTodos, completeTodos[index]];
+
+    const newCompleteTodos = [...completeTodos];
+    newCompleteTodos.splice(index, 1);
+
+    setCompleteTodos(newCompleteTodos);
+    setIncompleteTodos(newIncompleteTodos);
+  };
 
   return (
     <>
-      <h1 style={{ color: "red" }}>Hello!!</h1>
-      <ColorfulMessage color="blue">how are you</ColorfulMessage>
-      <ColorfulMessage color="pink">i'm fine</ColorfulMessage>
-      <button onClick={onClicCountUp}>count up</button>
-      <br />
-      <button onClick={onClicSwitchShowFlag}>on/off</button>
-      <p>{num}</p>
-      {showFlag && <p>!!!!</p>}
+      <InputTodo
+        todoText={todoText}
+        onChange={onChangeTodoText}
+        onClick={onClickAdd}
+        disabled={incompleteTodos.length >= 5}
+      />
+
+      {incompleteTodos.length >= 5 && (
+        <p style={{ color: "red" }}>登録できるTODOは5個までです。</p>
+      )}
+
+      <IncompleteTodos
+        incompleteTodos={incompleteTodos}
+        onClickComplete={onClickComplete}
+        onClickDelete={onClickDelete}
+      />
+
+      <CompleteTodos completeTodos={completeTodos} onClickUndo={onClickUndo} />
     </>
   );
 };
